@@ -2,7 +2,7 @@
   "name": "묵호·동해 여행",
   "short_name": "묵호여행",
   "description": "묵호·동해 1박 2일 여행 가이드 - 지도, GPS, 일정 관리",
-  "start_url": "/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0ea5e9",

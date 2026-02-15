@@ -49,7 +49,7 @@ const App = (() => {
   // 서비스 워커 등록
   function registerSW() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {
         // 로컬 파일 열기 시 실패 가능 - 무시
       });
     }

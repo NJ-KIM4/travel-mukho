@@ -1,13 +1,13 @@
 // 서비스 워커 - 오프라인 지원
 const CACHE_NAME = 'mukho-travel-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/map.js',
-  '/js/data.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/map.js',
+  './js/data.js',
+  './manifest.json'
 ];
 
 // 외부 CDN 리소스 (Leaflet 지도 라이브러리)
