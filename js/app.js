@@ -349,8 +349,8 @@ const App = (() => {
           ${event.lat ? `
           <div class="event-meta">
             <span onclick="event.stopPropagation(); App.openNavigation(${event.lat}, ${event.lng}, '${event.title.replace(/'/g, "\\'")}'${prevLat ? `, ${prevLat}, ${prevLng}, '${prevName.replace(/'/g, "\\'")}'` : ''})">🧭 길찾기</span>
-            <span>📍 지도에서 보기</span>
-            ${event.spotId ? '<span>ℹ️ 상세정보</span>' : ''}
+            <span onclick="event.stopPropagation(); App.viewOnMap(${event.spotId ? `'${event.spotId}'` : 'null'}, ${event.lat}, ${event.lng})">📍 지도에서 보기</span>
+            ${event.spotId ? `<span onclick="event.stopPropagation(); App.showSpotModal('${event.spotId}')">ℹ️ 상세정보</span>` : ''}
           </div>` : ''}
         </div>`;
 
@@ -375,18 +375,22 @@ const App = (() => {
 
   // 이벤트 카드 클릭
   function onEventClick(el) {
-    const lat = el.dataset.lat;
-    const lng = el.dataset.lng;
     const spotId = el.dataset.spotId;
-
     if (spotId) {
-      // 상세 정보 모달 표시
       showSpotModal(spotId);
-    } else if (lat && lng) {
-      // 지도로 이동
-      switchTab('map');
-      setTimeout(() => MapManager.flyTo(Number(lat), Number(lng), 16), 200);
     }
+  }
+
+  // 지도에서 보기 (일정 카드에서 직접 호출)
+  function viewOnMap(spotId, lat, lng) {
+    switchTab('map');
+    setTimeout(() => {
+      if (spotId) {
+        MapManager.openSpotPopup(spotId);
+      } else {
+        MapManager.flyTo(Number(lat), Number(lng), 4);
+      }
+    }, 100);
   }
 
   // 정보 탭 렌더링
@@ -620,6 +624,7 @@ const App = (() => {
     init,
     switchTab,
     onEventClick,
+    viewOnMap,
     showSpotModal,
     closeModal,
     navigateToSpot,

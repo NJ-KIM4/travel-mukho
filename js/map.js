@@ -92,9 +92,10 @@ const MapManager = (() => {
       // 경로 라인 그리기
       drawRoute();
 
-      // 지도 드래그 시 따라가기 모드 해제
+      // 지도 드래그 시 따라가기 모드 해제 + 팝업 닫기 (드래그 성능 확보)
       kakao.maps.event.addListener(map, 'dragstart', () => {
         isFollowing = false;
+        closeAllPopups();
       });
 
       mapReady = true;
@@ -392,11 +393,11 @@ const MapManager = (() => {
     }
   }
 
-  // 특정 좌표로 이동
+  // 특정 좌표로 이동 (즉시 이동, 애니메이션 없음)
   function flyTo(lat, lng, level) {
     if (map) {
-      map.panTo(new kakao.maps.LatLng(lat, lng));
-      if (level) setTimeout(() => map.setLevel(level), 300);
+      map.setCenter(new kakao.maps.LatLng(lat, lng));
+      if (level) map.setLevel(level);
     }
   }
 
@@ -408,11 +409,11 @@ const MapManager = (() => {
     map.setBounds(bounds, 50);
   }
 
-  // 묵호/동해 중심으로 이동
+  // 묵호/동해 중심으로 이동 (즉시)
   function goToMukho() {
     if (!map) return;
-    map.panTo(new kakao.maps.LatLng(37.54, 129.11));
-    setTimeout(() => map.setLevel(9), 300);
+    map.setCenter(new kakao.maps.LatLng(37.54, 129.11));
+    map.setLevel(9);
   }
 
   // 특정 스팟의 팝업 열기 (즉시 이동)
