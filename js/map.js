@@ -106,15 +106,9 @@ const MapManager = (() => {
       // 경로 라인 그리기
       drawRoute();
 
-      // 지도 드래그/줌 시 따라가기 모드 해제 + 팝업 닫기 (성능 확보)
+      // 지도 드래그 시 따라가기 모드 해제
       kakao.maps.event.addListener(map, 'dragstart', () => {
         isFollowing = false;
-        closeAllPopups();
-        clearSearchMarker();
-      });
-      kakao.maps.event.addListener(map, 'zoom_start', () => {
-        closeAllPopups();
-        clearSearchMarker();
       });
 
       mapReady = true;
