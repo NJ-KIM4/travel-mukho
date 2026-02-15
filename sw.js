@@ -1,5 +1,5 @@
 // 서비스 워커 - 오프라인 지원
-const CACHE_NAME = 'mukho-travel-v18';
+const CACHE_NAME = 'mukho-travel-v19';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

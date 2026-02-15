@@ -9,6 +9,25 @@ const TRAVEL_DATA = {
     theme: ["맛집", "관광", "자연", "힐링", "카페", "문화"]
   },
 
+  // 숙소 예약 정보
+  accommodation: {
+    id: "a1",
+    name: "동해 등대오름길펜션",
+    room: "침대실 302호 (취사불가)",
+    address: "강원도 동해시 묵호진동",
+    lat: 37.5565,
+    lng: 129.1172,
+    checkIn: "15:00",
+    checkOut: "11:00",
+    dates: "2026.02.16(월) ~ 02.17(화)",
+    nights: 1,
+    price: "70,000원",
+    payment: "KB페이",
+    reservationNo: "2601290613330022",
+    notes: "취사불가 · 기준 2명 / 최대 2명 · 취소 및 환불불가",
+    safePhone: "0503-5106-4467"
+  },
+
   // 집 주소
   home: {
     name: "집",
@@ -326,7 +345,7 @@ const TRAVEL_DATA = {
         },
         {
           time: "13:40",
-          endTime: "15:00",
+          endTime: "14:50",
           title: "🏠 묵호등대 & 논골담길 산책",
           type: "sightseeing",
           icon: "🏠",
@@ -336,18 +355,29 @@ const TRAVEL_DATA = {
           lng: 129.1178
         },
         {
-          time: "15:10",
-          endTime: "16:00",
+          time: "15:00",
+          endTime: "15:20",
+          title: "🏨 숙소 체크인",
+          type: "rest",
+          icon: "🏨",
+          description: "동해 등대오름길펜션 침대실 302호\n체크인 15:00 · 짐 놓고 간단히 정리\n📞 안심번호 0503-5106-4467",
+          spotId: null,
+          lat: 37.5565,
+          lng: 129.1172
+        },
+        {
+          time: "15:30",
+          endTime: "16:10",
           title: "☕ 카페코스타에서 휴식",
           type: "cafe",
           icon: "☕",
-          description: "묵호 해안로 모던 오션뷰 카페에서 커피 타임",
+          description: "묵호 해안로 모던 오션뷰 카페에서 커피 타임\n숙소에서 도보 5분 거리",
           spotId: "c2",
           lat: 37.5560,
           lng: 129.1175
         },
         {
-          time: "16:15",
+          time: "16:20",
           endTime: "17:30",
           title: "🪨 추암 촛대바위 & 해변",
           type: "sightseeing",
@@ -382,13 +412,13 @@ const TRAVEL_DATA = {
         {
           time: "20:30",
           endTime: null,
-          title: "🏨 숙소 체크인 & 휴식",
+          title: "🏨 숙소 복귀 & 휴식",
           type: "rest",
           icon: "🏨",
-          description: "숙소에서 편안한 밤 보내기\n내일 일정 확인하고 푹 쉬세요",
+          description: "등대오름길펜션으로 복귀\n내일 체크아웃 11:00 · 푹 쉬세요",
           spotId: null,
-          lat: 37.5536,
-          lng: 129.1133
+          lat: 37.5565,
+          lng: 129.1172
         }
       ]
     },
@@ -405,7 +435,7 @@ const TRAVEL_DATA = {
           title: "🌅 추암 일출 감상 (선택)",
           type: "sightseeing",
           icon: "🌅",
-          description: "일찍 일어난다면 추암 촛대바위 일출 감상!\n일출 시간 약 07:15 (2월 기준)",
+          description: "일찍 일어난다면 추암 촛대바위 일출 감상!\n일출 시간 약 07:15 (2월 기준)\n※ 택시 편도 약 15분",
           spotId: "s3",
           lat: 37.4793,
           lng: 129.1528
@@ -416,43 +446,54 @@ const TRAVEL_DATA = {
           title: "🍲 아침: 곰치국 해장",
           type: "food",
           icon: "🍲",
-          description: "동해 곰치국으로 든든한 아침 해장\n또는 숙소 조식",
+          description: "동해 곰치국으로 든든한 아침 해장",
           spotId: "r4",
           lat: 37.5230,
           lng: 129.0920
         },
         {
-          time: "09:45",
-          endTime: "11:30",
-          title: "🏔️ 무릉계곡 산책",
-          type: "sightseeing",
-          icon: "🏔️",
-          description: "두타산 무릉계곡 트레킹\n무릉반석, 삼화사 둘러보기\n겨울 결빙 계곡 풍경 감상",
-          spotId: "s5",
-          lat: 37.4747,
-          lng: 129.0025
+          time: "09:30",
+          endTime: "10:50",
+          title: "🏨 숙소 복귀 & 짐 정리",
+          type: "rest",
+          icon: "🏨",
+          description: "등대오름길펜션으로 복귀\n짐 정리하고 체크아웃 준비\n주변 논골담길 아침 산책도 추천",
+          spotId: null,
+          lat: 37.5565,
+          lng: 129.1172
         },
         {
-          time: "11:40",
-          endTime: "12:30",
+          time: "11:00",
+          endTime: "11:10",
+          title: "🏨 숙소 체크아웃",
+          type: "rest",
+          icon: "🔑",
+          description: "등대오름길펜션 체크아웃 (11:00)\n짐 챙기고 출발!",
+          spotId: null,
+          lat: 37.5565,
+          lng: 129.1172
+        },
+        {
+          time: "11:20",
+          endTime: "12:20",
+          title: "🕳️ 천곡천연동굴",
+          type: "sightseeing",
+          icon: "🕳️",
+          description: "도심 속 천연 석회암 동굴 관람\n종유석과 석순이 신비로운 분위기\n동굴 내부 약 13도, 겉옷 챙기세요\n※ 월요일 휴무 → 화요일 방문 가능!",
+          spotId: "s6",
+          lat: 37.5175,
+          lng: 129.1106
+        },
+        {
+          time: "12:30",
+          endTime: "13:20",
           title: "🥘 점심: 동해 중앙시장",
           type: "food",
           icon: "🥘",
-          description: "동해 중앙시장에서 닭강정, 감자전 등 시장 먹거리 체험",
+          description: "동해 중앙시장에서 닭강정, 감자전 등\n시장 먹거리 체험",
           spotId: "r2",
           lat: 37.5245,
           lng: 129.1140
-        },
-        {
-          time: "12:40",
-          endTime: "13:20",
-          title: "🕳️ 천곡천연동굴 (선택)",
-          type: "sightseeing",
-          icon: "🕳️",
-          description: "시간 여유 있으면 천연 석회암 동굴 관람\n종유석과 석순이 신비로운 분위기\n※ 월요일 휴무 → 화요일 방문 가능!",
-          spotId: "s6",
-          lat: 37.5242,
-          lng: 129.0892
         },
         {
           time: "13:30",

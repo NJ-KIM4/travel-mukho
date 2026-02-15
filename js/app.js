@@ -436,6 +436,48 @@ const App = (() => {
         `).join('')}
       </div>`;
 
+    // 숙소 정보
+    const acc = TRAVEL_DATA.accommodation;
+    if (acc) {
+      html += `
+      <div class="info-section">
+        <div class="info-section-title">🏨 숙소</div>
+        <div class="ticket-card">
+          <div class="ticket-label">${acc.name}</div>
+          <div class="ticket-route">${acc.room}</div>
+          <div class="ticket-details">
+            <div class="ticket-detail">
+              <label>날짜</label>
+              <span>${acc.dates}</span>
+            </div>
+            <div class="ticket-detail">
+              <label>체크인</label>
+              <span>${acc.checkIn}</span>
+            </div>
+            <div class="ticket-detail">
+              <label>체크아웃</label>
+              <span>${acc.checkOut}</span>
+            </div>
+          </div>
+          <div class="ticket-details" style="margin-top:8px;">
+            <div class="ticket-detail">
+              <label>결제</label>
+              <span>${acc.price} (${acc.payment})</span>
+            </div>
+            <div class="ticket-detail">
+              <label>연락처</label>
+              <span>${acc.safePhone}</span>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">${acc.notes}</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <button class="navi-btn" onclick="App.openNavigation(${acc.lat}, ${acc.lng}, '${acc.name.replace(/'/g, "\\'")}')">🧭 길찾기</button>
+            <button class="navi-btn" onclick="App.viewOnMap(null, ${acc.lat}, ${acc.lng})">📍 지도에서 보기</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
     // 관광지
     html += `
       <div class="info-section">

@@ -241,6 +241,14 @@ const MapManager = (() => {
       `<div class="kakao-popup"><div class="kakao-popup-title">🏠 ${home.name}</div><div class="kakao-popup-desc">${home.address}</div></div>`
     );
 
+    // 숙소 마커
+    const acc = TRAVEL_DATA.accommodation;
+    if (acc) {
+      addMarker(acc.lat, acc.lng, '🏨', 'home', acc.name,
+        `<div class="kakao-popup"><div class="kakao-popup-title">🏨 ${acc.name}</div><div class="kakao-popup-desc">${acc.room}<br>체크인 ${acc.checkIn} · 체크아웃 ${acc.checkOut}<br>📞 ${acc.safePhone}</div><div class="kakao-popup-actions"><a class="kakao-popup-btn" href="#" onclick="event.preventDefault(); App.openNavigation(${acc.lat}, ${acc.lng}, '${acc.name.replace(/'/g, "\\'")}')">🧭 길찾기</a><a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(acc.name)}" target="_blank">📍 네이버</a></div></div>`
+      );
+    }
+
     // 역 마커
     Object.values(TRAVEL_DATA.stations).forEach((station) => {
       addMarker(station.lat, station.lng, '🚉', 'station', station.name,
