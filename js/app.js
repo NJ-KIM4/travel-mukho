@@ -6,6 +6,9 @@ const App = (() => {
 
   // 앱 초기화
   function init() {
+    // 저장된 테마 적용
+    loadTheme();
+
     // 탭 이벤트
     document.querySelectorAll('.tab-item').forEach((tab) => {
       tab.addEventListener('click', () => switchTab(tab.dataset.tab));
@@ -42,6 +45,38 @@ const App = (() => {
     // 카카오맵은 지도 탭이 표시될 때 초기화 (hidden 상태에서는 크기 계산 불가)
     // 서비스 워커 등록
     registerSW();
+  }
+
+  // 저장된 테마 불러오기
+  function loadTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    // 저장값 없거나 'light'면 기본(라이트) 유지
+    updateThemeIcon();
+  }
+
+  // 테마 토글
+  function toggleTheme() {
+    const isDark = document.documentElement.dataset.theme === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    if (newTheme === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon();
+  }
+
+  // 테마 아이콘 업데이트
+  function updateThemeIcon() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const isDark = document.documentElement.dataset.theme === 'dark';
+    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.title = isDark ? '라이트 모드로 전환' : '다크 모드로 전환';
   }
 
   // 서비스 워커 등록
@@ -434,6 +469,7 @@ const App = (() => {
     closeModal,
     navigateToSpot,
     toggleGPS,
+    toggleTheme,
     goToMyLocation,
     updateLocation,
     showFullRoute,

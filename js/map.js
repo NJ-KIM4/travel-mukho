@@ -70,12 +70,6 @@ const MapManager = (() => {
         level: 9
       });
 
-      // 줌 컨트롤
-      map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.TOPRIGHT);
-
-      // 지도 타입 컨트롤 (일반/위성)
-      map.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT);
-
       // 마커 추가
       addAllMarkers();
 
