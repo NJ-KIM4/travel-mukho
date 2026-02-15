@@ -11,6 +11,24 @@ const MapManager = (() => {
   let sdkReady = false;        // SDK 로딩 완료 여부
   let mapReady = false;        // 지도 생성 완료 여부
 
+  const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&autoload=false';
+
+  // SDK 동적 로드
+  function loadSDK() {
+    return new Promise((resolve, reject) => {
+      // 이미 로드됨
+      if (typeof kakao !== 'undefined') {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = SDK_URL;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('SDK 스크립트 로드 실패'));
+      document.head.appendChild(script);
+    });
+  }
+
   // 지도 초기화 (지도 탭 클릭 시 호출)
   function init() {
     const container = document.getElementById('map');
@@ -21,27 +39,27 @@ const MapManager = (() => {
       return;
     }
 
-    // kakao 객체 존재 여부 확인 (autoload=false이면 존재해야 함)
-    if (typeof kakao === 'undefined') {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">카카오맵 SDK를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</div>';
-      return;
-    }
+    // 로딩 메시지 표시
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">지도를 불러오는 중...</div>';
 
-    // SDK가 아직 로드되지 않았으면 kakao.maps.load()로 로드
-    if (!sdkReady) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">지도를 불러오는 중...</div>';
-
-      kakao.maps.load(() => {
-        sdkReady = true;
-        // 로딩 메시지 제거
+    // SDK 동적 로드 → kakao.maps.load() → 지도 생성
+    loadSDK()
+      .then(() => {
+        return new Promise((resolve) => {
+          kakao.maps.load(() => {
+            sdkReady = true;
+            resolve();
+          });
+        });
+      })
+      .then(() => {
         container.innerHTML = '';
         createMap(container);
+      })
+      .catch((err) => {
+        console.error('카카오맵 로드 실패:', err);
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">지도를 불러올 수 없습니다.<br>페이지를 새로고침 해주세요.</div>';
       });
-      return;
-    }
-
-    // SDK 이미 로드됨 → 바로 지도 생성
-    createMap(container);
   }
 
   // 실제 지도 생성

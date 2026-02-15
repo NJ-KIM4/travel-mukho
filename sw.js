@@ -1,5 +1,5 @@
 // 서비스 워커 - 오프라인 지원
-const CACHE_NAME = 'mukho-travel-v5';
+const CACHE_NAME = 'mukho-travel-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -34,17 +34,8 @@ self.addEventListener('activate', (event) => {
 
 // 요청 가로채기: 캐시 우선, 네트워크 폴백
 self.addEventListener('fetch', (event) => {
-  // 지도 타일은 네트워크 우선 (캐시 폴백)
-  if (event.request.url.includes('dapi.kakao.com') || event.request.url.includes('map.kakao.com')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
+  // 카카오맵 SDK/타일은 서비스 워커가 가로채지 않음 (브라우저 기본 처리)
+  if (event.request.url.includes('kakao.com')) {
     return;
   }
 
