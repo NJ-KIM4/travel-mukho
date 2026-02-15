@@ -15,6 +15,34 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- ===== 잠금화면 ===== -->
+  <div class="lock-screen" id="lock-screen">
+    <div class="lock-content">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-title">묵호·동해 여행</div>
+      <div class="lock-subtitle">비밀번호를 입력해주세요</div>
+      <div class="pin-dots" id="pin-dots">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="App.onPinInput('1')">1</button>
+        <button class="pin-key" onclick="App.onPinInput('2')">2</button>
+        <button class="pin-key" onclick="App.onPinInput('3')">3</button>
+        <button class="pin-key" onclick="App.onPinInput('4')">4</button>
+        <button class="pin-key" onclick="App.onPinInput('5')">5</button>
+        <button class="pin-key" onclick="App.onPinInput('6')">6</button>
+        <button class="pin-key" onclick="App.onPinInput('7')">7</button>
+        <button class="pin-key" onclick="App.onPinInput('8')">8</button>
+        <button class="pin-key" onclick="App.onPinInput('9')">9</button>
+        <button class="pin-key pin-key-empty"></button>
+        <button class="pin-key" onclick="App.onPinInput('0')">0</button>
+        <button class="pin-key pin-key-del" onclick="App.onPinDelete()">⌫</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 헤더 ===== -->
   <header class="header">
     <div class="header-title">

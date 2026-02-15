@@ -900,3 +900,140 @@ html, body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ===== 잠금화면 ===== */
+.lock-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-screen.hidden {
+  display: none;
+}
+
+.lock-content {
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+  padding: 0 20px;
+}
+
+.lock-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.lock-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.lock-subtitle {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin-bottom: 28px;
+}
+
+/* PIN 인디케이터 */
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pin-dots span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.pin-dots span.filled {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* PIN 에러 메시지 */
+.pin-error {
+  height: 20px;
+  font-size: 13px;
+  color: #ef4444;
+  margin-bottom: 8px;
+}
+
+/* 흔들기 애니메이션 */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.pin-dots.shake {
+  animation: shake 0.4s ease;
+}
+
+/* 숫자 키패드 */
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.pin-key {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.pin-key:active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(0.95);
+}
+
+.pin-key-empty {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.pin-key-empty:active {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  transform: none;
+}
+
+.pin-key-del {
+  font-size: 20px;
+}

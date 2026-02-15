@@ -4,11 +4,70 @@ const App = (() => {
   let currentDay = 1;
   let currentLocation = null;
 
-  // 앱 초기화
-  function init() {
-    // 저장된 테마 적용
-    loadTheme();
+  // PIN 해시값 (SHA-256 of 6자리 PIN)
+  const PIN_HASH = 'fe3363542485a2beec53f5cb0a83a3f92ed1405ab3a5058d0438277101e8bf69';
+  let pinInput = '';
 
+  // SHA-256 해시 생성 (Web Crypto API)
+  async function hashPIN(pin) {
+    const data = new TextEncoder().encode(pin);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // PIN 숫자 입력
+  function onPinInput(num) {
+    if (pinInput.length >= 6) return;
+    pinInput += num;
+    updateDots();
+    if (pinInput.length === 6) verifyPIN();
+  }
+
+  // PIN 삭제 (백스페이스)
+  function onPinDelete() {
+    if (pinInput.length === 0) return;
+    pinInput = pinInput.slice(0, -1);
+    updateDots();
+  }
+
+  // PIN 인디케이터 업데이트
+  function updateDots() {
+    const dots = document.querySelectorAll('#pin-dots span');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < pinInput.length);
+    });
+  }
+
+  // PIN 검증
+  async function verifyPIN() {
+    const hash = await hashPIN(pinInput);
+    if (hash === PIN_HASH) {
+      localStorage.setItem('mukho_auth', 'true');
+      unlockApp();
+    } else {
+      // 에러 표시 + 흔들기 애니메이션
+      const errorEl = document.getElementById('pin-error');
+      const dotsEl = document.getElementById('pin-dots');
+      errorEl.textContent = '비밀번호가 틀렸습니다';
+      dotsEl.classList.add('shake');
+      setTimeout(() => {
+        dotsEl.classList.remove('shake');
+        pinInput = '';
+        updateDots();
+      }, 500);
+      setTimeout(() => { errorEl.textContent = ''; }, 2000);
+    }
+  }
+
+  // 잠금 해제 - 잠금화면 숨기고 앱 초기화
+  function unlockApp() {
+    const lockScreen = document.getElementById('lock-screen');
+    lockScreen.classList.add('hidden');
+    initApp();
+  }
+
+  // 앱 초기화 (인증 후 실행)
+  function initApp() {
     // 탭 이벤트
     document.querySelectorAll('.tab-item').forEach((tab) => {
       tab.addEventListener('click', () => switchTab(tab.dataset.tab));
@@ -42,9 +101,21 @@ const App = (() => {
     // 정보 탭 렌더링
     renderInfoTab();
 
-    // 카카오맵은 지도 탭이 표시될 때 초기화 (hidden 상태에서는 크기 계산 불가)
     // 서비스 워커 등록
     registerSW();
+  }
+
+  // 진입점: 인증 상태 확인 후 분기
+  function init() {
+    // 테마는 잠금화면에서도 적용
+    loadTheme();
+
+    if (localStorage.getItem('mukho_auth') === 'true') {
+      // 이미 인증됨 → 잠금화면 숨기고 앱 시작
+      document.getElementById('lock-screen').classList.add('hidden');
+      initApp();
+    }
+    // 미인증 → 잠금화면 표시 상태 유지, PIN 입력 대기
   }
 
   // 저장된 테마 불러오기
@@ -474,7 +545,9 @@ const App = (() => {
     updateLocation,
     showFullRoute,
     openNavigation,
-    openNavigationForSpot
+    openNavigationForSpot,
+    onPinInput,
+    onPinDelete
   };
 })();
 
