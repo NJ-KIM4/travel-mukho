@@ -545,10 +545,8 @@ html, body {
   height: 36px;
   border-radius: 50%;
   font-size: 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   border: 2px solid white;
   cursor: pointer;
-  will-change: transform;
   contain: layout style;
 }
 

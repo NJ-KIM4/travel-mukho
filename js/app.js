@@ -384,13 +384,14 @@ const App = (() => {
   // 지도에서 보기 (일정 카드에서 직접 호출)
   function viewOnMap(spotId, lat, lng) {
     switchTab('map');
+    // relayout 완료 대기 (50ms에 시작 → 300ms이면 충분)
     setTimeout(() => {
       if (spotId) {
         MapManager.openSpotPopup(spotId);
       } else {
         MapManager.flyTo(Number(lat), Number(lng), 4);
       }
-    }, 100);
+    }, 300);
   }
 
   // 정보 탭 렌더링
