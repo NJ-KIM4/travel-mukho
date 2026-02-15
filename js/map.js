@@ -1,7 +1,7 @@
 // 카카오맵 기반 지도 & GPS 관리 모듈
 const MapManager = (() => {
   let map = null;              // 카카오 지도 인스턴스
-  let markers = [];            // 모든 마커 { marker, overlay, category, spotId }
+  let markers = [];            // 모든 마커 { markerOverlay, popupHtml, category, spotId, position }
   let routeLines = [];         // 경로 라인
   let myLocationOverlay = null;// 내 위치 오버레이
   let watchId = null;          // GPS 감시 ID
@@ -12,6 +12,7 @@ const MapManager = (() => {
   let mapReady = false;        // 지도 생성 완료 여부
   let places = null;           // Places API 인스턴스
   let searchMarkerData = null; // 검색 결과 마커 데이터
+  let popupOverlay = null;     // 공유 팝업 오버레이 (하나만 재사용)
 
   const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&libraries=services&autoload=false';
 
@@ -75,6 +76,14 @@ const MapManager = (() => {
       // Places API 인스턴스 생성
       places = new kakao.maps.services.Places();
 
+      // 공유 팝업 오버레이 생성 (하나만 재사용)
+      popupOverlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(0, 0),
+        content: '<div></div>',
+        yAnchor: 1.3,
+        zIndex: 10
+      });
+
       // 마커 추가
       addAllMarkers();
 
@@ -103,9 +112,9 @@ const MapManager = (() => {
     }
   }
 
-  // 커스텀 마커 HTML 생성
-  function createMarkerContent(emoji, type, name) {
-    return `<div class="custom-marker marker-${type}" title="${name}">${emoji}</div>`;
+  // 커스텀 마커 HTML 생성 (인덱스 기반 클릭 이벤트)
+  function createMarkerContent(emoji, type, name, markerIndex) {
+    return `<div class="custom-marker marker-${type}" title="${name}" onclick="MapManager.onMarkerClick(${markerIndex})">${emoji}</div>`;
   }
 
   // 팝업(인포윈도우) HTML 생성
@@ -128,48 +137,39 @@ const MapManager = (() => {
     return html;
   }
 
-  // 마커 + 오버레이 추가 헬퍼
+  // 마커 클릭 핸들러 (공유 팝업 재사용)
+  function onMarkerClick(index) {
+    const m = markers[index];
+    if (!m || !m.popupHtml) return;
+
+    // 팝업 닫기 버튼 + 컨텐츠
+    const closeBtn = `<div class="kakao-popup-close" onclick="MapManager.closeAllPopups()">✕</div>`;
+    const wrapHtml = `<div class="kakao-popup-wrap">${closeBtn}${m.popupHtml}</div>`;
+
+    // 공유 오버레이 업데이트
+    popupOverlay.setMap(null);
+    popupOverlay.setPosition(m.position);
+    popupOverlay.setContent(wrapHtml);
+    popupOverlay.setMap(map);
+  }
+
+  // 마커 + 오버레이 추가 헬퍼 (투명 마커 없이 경량화)
   function addMarker(lat, lng, emoji, type, name, popupHtml, spotId) {
     const position = new kakao.maps.LatLng(lat, lng);
+    const markerIndex = markers.length;
 
-    // 커스텀 오버레이로 마커 생성 (이모지 기반)
+    // 커스텀 오버레이로 마커 생성 (이모지 기반 + 클릭 이벤트 내장)
     const markerOverlay = new kakao.maps.CustomOverlay({
       position: position,
-      content: createMarkerContent(emoji, type, name),
+      content: createMarkerContent(emoji, type, name, markerIndex),
       yAnchor: 0.5,
       zIndex: 1
     });
     markerOverlay.setMap(map);
 
-    // 팝업 오버레이 (클릭 시 표시)
-    let popupOverlay = null;
-    if (popupHtml) {
-      const closeBtn = `<div class="kakao-popup-close" onclick="MapManager.closeAllPopups()">✕</div>`;
-      popupOverlay = new kakao.maps.CustomOverlay({
-        position: position,
-        content: `<div class="kakao-popup-wrap">${closeBtn}${popupHtml}</div>`,
-        yAnchor: 1.3,
-        zIndex: 10
-      });
-    }
-
-    // 마커 영역 클릭 감지용 투명 마커
-    const clickMarker = new kakao.maps.Marker({
-      position: position,
-      map: map,
-      opacity: 0
-    });
-
-    // 클릭 이벤트
-    kakao.maps.event.addListener(clickMarker, 'click', () => {
-      closeAllPopups();
-      if (popupOverlay) popupOverlay.setMap(map);
-    });
-
     const markerData = {
       markerOverlay,
-      popupOverlay,
-      clickMarker,
+      popupHtml: popupHtml || null,
       category: type,
       spotId: spotId || null,
       position
@@ -254,21 +254,18 @@ const MapManager = (() => {
 
   // 모든 팝업 닫기
   function closeAllPopups() {
-    markers.forEach((m) => {
-      if (m.popupOverlay) m.popupOverlay.setMap(null);
-    });
+    if (popupOverlay) popupOverlay.setMap(null);
   }
 
-  // 필터 적용
+  // 필터 적용 (투명 마커 제거로 경량화)
   function setFilter(category) {
     if (!mapReady) return;
     activeFilter = category;
     markers.forEach((m) => {
       const show = (category === 'all' || m.category === category);
       m.markerOverlay.setMap(show ? map : null);
-      m.clickMarker.setMap(show ? map : null);
-      if (!show && m.popupOverlay) m.popupOverlay.setMap(null);
     });
+    closeAllPopups();
   }
 
   // GPS 추적 시작/중지
@@ -404,13 +401,13 @@ const MapManager = (() => {
   // 특정 스팟의 팝업 열기
   function openSpotPopup(spotId) {
     if (!mapReady) return;
-    const m = markers.find((mk) => mk.spotId === spotId);
-    if (m) {
-      closeAllPopups();
+    const idx = markers.findIndex((mk) => mk.spotId === spotId);
+    if (idx !== -1) {
+      const m = markers[idx];
       map.panTo(m.position);
       setTimeout(() => {
         map.setLevel(4);
-        if (m.popupOverlay) m.popupOverlay.setMap(map);
+        onMarkerClick(idx);
       }, 400);
     }
   }
@@ -444,10 +441,9 @@ const MapManager = (() => {
     const position = new kakao.maps.LatLng(lat, lng);
 
     // 검색 마커 (빨간 핀 스타일)
-    const markerContent = `<div class="search-marker">📌</div>`;
     const markerOverlay = new kakao.maps.CustomOverlay({
       position: position,
-      content: markerContent,
+      content: `<div class="search-marker">📌</div>`,
       yAnchor: 1,
       zIndex: 50
     });
@@ -455,7 +451,9 @@ const MapManager = (() => {
 
     // 검색 결과 팝업
     const address = place.road_address_name || place.address_name || '';
-    const popupHtml = `
+    const searchPopup = new kakao.maps.CustomOverlay({
+      position: position,
+      content: `
       <div class="kakao-popup-wrap">
         <div class="kakao-popup-close" onclick="MapManager.clearSearchMarker()">✕</div>
         <div class="kakao-popup">
@@ -468,16 +466,13 @@ const MapManager = (() => {
             <a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(place.place_name)}" target="_blank">📍 네이버</a>
           </div>
         </div>
-      </div>`;
-    const popupOverlay = new kakao.maps.CustomOverlay({
-      position: position,
-      content: popupHtml,
+      </div>`,
       yAnchor: 1.8,
       zIndex: 100
     });
-    popupOverlay.setMap(map);
+    searchPopup.setMap(map);
 
-    searchMarkerData = { markerOverlay, popupOverlay };
+    searchMarkerData = { markerOverlay, popupOverlay: searchPopup };
 
     // 지도 이동
     map.panTo(position);
@@ -504,6 +499,7 @@ const MapManager = (() => {
     setFilter,
     openSpotPopup,
     closeAllPopups,
+    onMarkerClick,
     searchPlaces,
     showSearchMarker,
     clearSearchMarker,

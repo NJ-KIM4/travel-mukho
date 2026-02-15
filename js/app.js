@@ -274,12 +274,9 @@ const App = (() => {
       c.classList.toggle('active', c.id === `tab-${tabName}`);
     });
 
-    // 지도 탭: 첫 진입 시 초기화, 이후엔 relayout
+    // 지도 탭: 첫 진입 시 초기화 (init 내부에서 relayout 처리)
     if (tabName === 'map') {
-      setTimeout(() => {
-        MapManager.init();
-        MapManager.relayout();
-      }, 50);
+      setTimeout(() => MapManager.init(), 50);
     }
   }
 

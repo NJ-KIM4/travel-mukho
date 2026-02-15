@@ -81,7 +81,6 @@ html, body {
   justify-content: space-between;
   padding: 0 16px;
   z-index: 1000;
-  backdrop-filter: blur(10px);
 }
 
 .header-title {
@@ -110,7 +109,7 @@ html, body {
   background: var(--bg-card);
   font-size: 18px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s;
 }
 
 .theme-toggle:active {
@@ -140,7 +139,6 @@ html, body {
   height: 8px;
   border-radius: 50%;
   background: var(--primary);
-  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -197,7 +195,7 @@ html, body {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -239,7 +237,7 @@ html, body {
   padding: 14px 16px;
   margin-bottom: 12px;
   border: 1px solid var(--border);
-  transition: all 0.3s;
+  transition: transform 0.15s, background 0.15s;
   cursor: pointer;
 }
 
@@ -355,7 +353,6 @@ html, body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: none;
   background: var(--bg-card);
   color: var(--text);
   font-size: 20px;
@@ -364,7 +361,7 @@ html, body {
   justify-content: center;
   box-shadow: var(--shadow);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.15s;
   border: 1px solid var(--border);
 }
 
@@ -493,8 +490,8 @@ html, body {
 /* 검색 마커 (빨간 핀) */
 .search-marker {
   font-size: 32px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
   animation: markerBounce 0.4s ease;
+  will-change: transform;
 }
 
 @keyframes markerBounce {
@@ -530,8 +527,7 @@ html, body {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  backdrop-filter: blur(10px);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .filter-chip.active {
@@ -549,9 +545,11 @@ html, body {
   height: 36px;
   border-radius: 50%;
   font-size: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   border: 2px solid white;
   cursor: pointer;
+  will-change: transform;
+  contain: layout style;
 }
 
 .marker-food { background: var(--accent-food); }
@@ -755,7 +753,7 @@ html, body {
   margin-bottom: 8px;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
 }
 
 .spot-card:active {
@@ -846,7 +844,6 @@ html, body {
   height: calc(var(--tab-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   background: var(--tab-bar-bg);
-  backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
@@ -866,7 +863,7 @@ html, body {
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.15s;
   position: relative;
 }
 
@@ -986,7 +983,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s;
+  transition: opacity 0.15s;
 }
 
 .modal-action-btn.primary {
