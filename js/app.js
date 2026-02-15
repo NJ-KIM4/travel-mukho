@@ -3,6 +3,7 @@ const App = (() => {
   let currentTab = 'itinerary';
   let currentDay = 1;
   let currentLocation = null;
+  let searchTimer = null; // 검색 디바운스 타이머
 
   // PIN 해시값 (SHA-256 of 6자리 PIN)
   const PIN_HASH = 'fe3363542485a2beec53f5cb0a83a3f92ed1405ab3a5058d0438277101e8bf69';
@@ -92,6 +93,9 @@ const App = (() => {
       if (e.target.id === 'modal-overlay') closeModal();
     });
 
+    // 장소 검색 이벤트
+    initSearch();
+
     // 현재 날짜 기반 Day 자동 선택
     autoSelectDay();
 
@@ -148,6 +152,89 @@ const App = (() => {
     const isDark = document.documentElement.dataset.theme === 'dark';
     btn.textContent = isDark ? '☀️' : '🌙';
     btn.title = isDark ? '라이트 모드로 전환' : '다크 모드로 전환';
+  }
+
+  // 장소 검색 초기화
+  function initSearch() {
+    const input = document.getElementById('search-input');
+    const clearBtn = document.getElementById('search-clear');
+    const resultsEl = document.getElementById('search-results');
+    if (!input || !clearBtn || !resultsEl) return;
+
+    // 입력 이벤트 (300ms 디바운스)
+    input.addEventListener('input', () => {
+      const keyword = input.value.trim();
+      clearBtn.classList.toggle('hidden', keyword.length === 0);
+
+      clearTimeout(searchTimer);
+      if (keyword.length === 0) {
+        resultsEl.classList.add('hidden');
+        resultsEl.innerHTML = '';
+        return;
+      }
+
+      searchTimer = setTimeout(() => {
+        MapManager.searchPlaces(keyword, (results) => {
+          renderSearchResults(results);
+        });
+      }, 300);
+    });
+
+    // X 버튼: 전부 초기화
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.classList.add('hidden');
+      resultsEl.classList.add('hidden');
+      resultsEl.innerHTML = '';
+      MapManager.clearSearchMarker();
+    });
+
+    // 검색창 포커스 시 기존 결과 다시 표시
+    input.addEventListener('focus', () => {
+      if (resultsEl.innerHTML && input.value.trim()) {
+        resultsEl.classList.remove('hidden');
+      }
+    });
+  }
+
+  // 검색 결과 렌더링
+  function renderSearchResults(results) {
+    const resultsEl = document.getElementById('search-results');
+    if (!resultsEl) return;
+
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<div class="search-no-result">검색 결과가 없습니다</div>';
+      resultsEl.classList.remove('hidden');
+      return;
+    }
+
+    let html = '';
+    results.forEach((place, i) => {
+      const address = place.road_address_name || place.address_name || '';
+      html += `
+        <div class="search-result-item" data-index="${i}">
+          <div class="search-result-name">${place.place_name}</div>
+          <div class="search-result-address">${address}</div>
+          ${place.category_group_name ? `<div class="search-result-category">${place.category_group_name}</div>` : ''}
+        </div>`;
+    });
+
+    resultsEl.innerHTML = html;
+    resultsEl.classList.remove('hidden');
+
+    // 결과 클릭 이벤트
+    resultsEl.querySelectorAll('.search-result-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const idx = parseInt(item.dataset.index);
+        const place = results[idx];
+        if (place) {
+          MapManager.showSearchMarker(place);
+          resultsEl.classList.add('hidden');
+          // 장소명으로 입력 필드 업데이트
+          document.getElementById('search-input').value = place.place_name;
+        }
+      });
+    });
   }
 
   // 서비스 워커 등록

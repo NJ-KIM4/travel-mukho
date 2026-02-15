@@ -87,6 +87,15 @@
 
     <!-- 지도 탭 -->
     <div id="tab-map" class="tab-content" style="position:relative;overflow:hidden;">
+      <!-- 장소 검색 -->
+      <div class="map-search" id="map-search">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="장소 검색...">
+          <button class="search-clear hidden" id="search-clear">✕</button>
+        </div>
+        <div class="search-results hidden" id="search-results"></div>
+      </div>
       <!-- 필터 칩 -->
       <div class="map-filter">
         <button class="filter-chip active" data-filter="all">전체</button>

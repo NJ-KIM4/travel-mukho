@@ -10,8 +10,10 @@ const MapManager = (() => {
   let activeFilter = 'all';    // 현재 필터
   let sdkReady = false;        // SDK 로딩 완료 여부
   let mapReady = false;        // 지도 생성 완료 여부
+  let places = null;           // Places API 인스턴스
+  let searchMarkerData = null; // 검색 결과 마커 데이터
 
-  const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&autoload=false';
+  const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&libraries=services&autoload=false';
 
   // SDK 동적 로드
   function loadSDK() {
@@ -69,6 +71,9 @@ const MapManager = (() => {
         center: new kakao.maps.LatLng(37.54, 129.11),
         level: 9
       });
+
+      // Places API 인스턴스 생성
+      places = new kakao.maps.services.Places();
 
       // 마커 추가
       addAllMarkers();
@@ -410,6 +415,84 @@ const MapManager = (() => {
     }
   }
 
+  // 장소 검색 (Places API)
+  function searchPlaces(keyword, callback) {
+    if (!places || !mapReady) {
+      callback([]);
+      return;
+    }
+    // 현재 지도 영역 기반 검색
+    const bounds = map.getBounds();
+    places.keywordSearch(keyword, (data, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        callback(data.slice(0, 5));
+      } else {
+        callback([]);
+      }
+    }, {
+      bounds: bounds
+    });
+  }
+
+  // 검색 결과 마커 + 팝업 표시
+  function showSearchMarker(place) {
+    clearSearchMarker();
+    closeAllPopups();
+
+    const lat = parseFloat(place.y);
+    const lng = parseFloat(place.x);
+    const position = new kakao.maps.LatLng(lat, lng);
+
+    // 검색 마커 (빨간 핀 스타일)
+    const markerContent = `<div class="search-marker">📌</div>`;
+    const markerOverlay = new kakao.maps.CustomOverlay({
+      position: position,
+      content: markerContent,
+      yAnchor: 1,
+      zIndex: 50
+    });
+    markerOverlay.setMap(map);
+
+    // 검색 결과 팝업
+    const address = place.road_address_name || place.address_name || '';
+    const popupHtml = `
+      <div class="kakao-popup-wrap">
+        <div class="kakao-popup-close" onclick="MapManager.clearSearchMarker()">✕</div>
+        <div class="kakao-popup">
+          <div class="kakao-popup-title">📌 ${place.place_name}</div>
+          <div class="kakao-popup-desc">${address}</div>
+          ${place.category_group_name ? `<div class="kakao-popup-info">📂 ${place.category_group_name}</div>` : ''}
+          ${place.phone ? `<div class="kakao-popup-info">📞 ${place.phone}</div>` : ''}
+          <div class="kakao-popup-actions">
+            <a class="kakao-popup-btn" href="#" onclick="event.preventDefault(); App.openNavigation(${lat}, ${lng}, '${place.place_name.replace(/'/g, "\\'")}')">🧭 길찾기</a>
+            <a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(place.place_name)}" target="_blank">📍 네이버</a>
+          </div>
+        </div>
+      </div>`;
+    const popupOverlay = new kakao.maps.CustomOverlay({
+      position: position,
+      content: popupHtml,
+      yAnchor: 1.8,
+      zIndex: 100
+    });
+    popupOverlay.setMap(map);
+
+    searchMarkerData = { markerOverlay, popupOverlay };
+
+    // 지도 이동
+    map.panTo(position);
+    setTimeout(() => map.setLevel(3), 300);
+  }
+
+  // 검색 마커 제거
+  function clearSearchMarker() {
+    if (searchMarkerData) {
+      searchMarkerData.markerOverlay.setMap(null);
+      searchMarkerData.popupOverlay.setMap(null);
+      searchMarkerData = null;
+    }
+  }
+
   return {
     init,
     relayout,
@@ -421,6 +504,9 @@ const MapManager = (() => {
     setFilter,
     openSpotPopup,
     closeAllPopups,
+    searchPlaces,
+    showSearchMarker,
+    clearSearchMarker,
     isTracking: () => isTracking
   };
 })();

@@ -377,9 +377,135 @@ html, body {
   border-color: var(--primary);
 }
 
+/* 장소 검색 */
+.map-search {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 850;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 0 14px;
+  height: 42px;
+  box-shadow: var(--shadow);
+  gap: 8px;
+}
+
+.search-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.search-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
+  font-family: inherit;
+  min-width: 0;
+}
+
+.search-input-wrap input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: var(--border);
+  border-radius: 50%;
+  color: var(--text-sub);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-clear.hidden {
+  display: none;
+}
+
+.search-results {
+  margin-top: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.search-results.hidden {
+  display: none;
+}
+
+.search-result-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:active {
+  background: var(--bg-card-hover);
+}
+
+.search-result-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.search-result-address {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.search-result-category {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.search-no-result {
+  padding: 16px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 검색 마커 (빨간 핀) */
+.search-marker {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: markerBounce 0.4s ease;
+}
+
+@keyframes markerBounce {
+  0% { transform: translateY(-20px); opacity: 0; }
+  60% { transform: translateY(4px); }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
 .map-filter {
   position: absolute;
-  top: 12px;
+  top: 62px;
   left: 12px;
   right: 12px;
   z-index: 800;
