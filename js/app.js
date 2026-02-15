@@ -111,6 +111,7 @@ const App = (() => {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     let html = '';
+    let prevLat = null, prevLng = null, prevName = null;
     dayData.events.forEach((event, index) => {
       // 현재/과거/미래 상태 계산
       const [hours, mins] = event.time.split(':').map(Number);
@@ -157,11 +158,18 @@ const App = (() => {
           <div class="event-desc">${event.description}</div>
           ${event.lat ? `
           <div class="event-meta">
-            <span onclick="event.stopPropagation(); App.openNavigation(${event.lat}, ${event.lng}, '${event.title.replace(/'/g, "\\'")}')">🧭 길찾기</span>
+            <span onclick="event.stopPropagation(); App.openNavigation(${event.lat}, ${event.lng}, '${event.title.replace(/'/g, "\\'")}'${prevLat ? `, ${prevLat}, ${prevLng}, '${prevName.replace(/'/g, "\\'")}'` : ''})">🧭 길찾기</span>
             <span>📍 지도에서 보기</span>
             ${event.spotId ? '<span>ℹ️ 상세정보</span>' : ''}
           </div>` : ''}
         </div>`;
+
+      // 이전 장소 좌표 갱신
+      if (event.lat && event.lng) {
+        prevLat = event.lat;
+        prevLng = event.lng;
+        prevName = event.title;
+      }
     });
 
     container.innerHTML = html;
@@ -267,7 +275,7 @@ const App = (() => {
         <div class="spot-desc">${item.description}</div>
         <div class="spot-tags">
           ${tags.map((t) => `<span class="spot-tag">${t}</span>`).join('')}
-          <button class="navi-btn" onclick="event.stopPropagation(); App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</button>
+          <button class="navi-btn" onclick="event.stopPropagation(); App.openNavigationForSpot('${item.id}', ${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</button>
         </div>
       </div>`;
   }
@@ -329,7 +337,7 @@ const App = (() => {
 
     html += `
       <div class="modal-actions">
-        <button class="modal-action-btn primary" onclick="App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">
+        <button class="modal-action-btn primary" onclick="App.openNavigationForSpot('${item.id}', ${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">
           🧭 길찾기
         </button>
         <button class="modal-action-btn secondary" onclick="App.navigateToSpot('${item.id}')">
@@ -368,16 +376,48 @@ const App = (() => {
     currentLocation = { lat, lng };
   }
 
-  // 외부 지도 앱으로 길찾기 (현재 위치 → 목적지)
-  function openNavigation(destLat, destLng, destName) {
-    if (!currentLocation) {
-      // GPS 꺼져있으면 목적지만 열기
-      window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+  // 외부 지도 앱으로 길찾기 (출발지 → 목적지)
+  // fromLat/fromLng/fromName이 있으면 고정 출발지, 없으면 GPS 또는 목적지만 폴백
+  function openNavigation(destLat, destLng, destName, fromLat, fromLng, fromName) {
+    if (fromLat && fromLng) {
+      // 고정 출발지 → 목적지
+      window.open(`https://map.kakao.com/link/from/${encodeURIComponent(fromName)},${fromLat},${fromLng}/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
       return;
     }
-    const { lat: sLat, lng: sLng } = currentLocation;
-    // 카카오맵 길찾기 (모바일에서 앱 설치 시 앱으로 열림)
-    window.open(`https://map.kakao.com/link/from/현재위치,${sLat},${sLng}/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+    if (currentLocation) {
+      const { lat: sLat, lng: sLng } = currentLocation;
+      window.open(`https://map.kakao.com/link/from/현재위치,${sLat},${sLng}/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+      return;
+    }
+    // GPS도 없으면 목적지만
+    window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+  }
+
+  // 일정에서 특정 스팟의 이전 장소 찾기
+  function findPrevLocation(spotId) {
+    for (const day of TRAVEL_DATA.itinerary) {
+      for (let i = 0; i < day.events.length; i++) {
+        if (day.events[i].spotId === spotId) {
+          // 이전 이벤트 중 좌표가 있는 것 찾기
+          for (let j = i - 1; j >= 0; j--) {
+            if (day.events[j].lat && day.events[j].lng) {
+              return { lat: day.events[j].lat, lng: day.events[j].lng, name: day.events[j].title };
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // 스팟 기반 길찾기 (모달/스팟카드/지도팝업용)
+  function openNavigationForSpot(spotId, destLat, destLng, destName) {
+    const prev = findPrevLocation(spotId);
+    if (prev) {
+      openNavigation(destLat, destLng, destName, prev.lat, prev.lng, prev.name);
+    } else {
+      openNavigation(destLat, destLng, destName);
+    }
   }
 
   // 전체 경로 보기
@@ -397,7 +437,8 @@ const App = (() => {
     goToMyLocation,
     updateLocation,
     showFullRoute,
-    openNavigation
+    openNavigation,
+    openNavigationForSpot
   };
 })();
 

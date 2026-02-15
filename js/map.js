@@ -122,7 +122,7 @@ const MapManager = (() => {
     if (item.tips) html += `<div class="kakao-popup-info">💡 ${item.tips}</div>`;
 
     html += `<div class="kakao-popup-actions">`;
-    html += `<a class="kakao-popup-btn" href="#" onclick="event.preventDefault(); App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</a>`;
+    html += `<a class="kakao-popup-btn" href="#" onclick="event.preventDefault(); App.openNavigationForSpot('${item.id}', ${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</a>`;
     html += `<a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(item.name)}" target="_blank">📍 네이버</a>`;
     html += `</div>`;
     html += `</div>`;
