@@ -536,27 +536,6 @@ html, body {
   color: white;
 }
 
-/* 카카오맵 마커 커스텀 */
-.custom-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 18px;
-  border: 2px solid white;
-  cursor: pointer;
-  contain: layout style;
-}
-
-.marker-food { background: var(--accent-food); }
-.marker-sightseeing { background: var(--accent-sight); }
-.marker-cafe { background: var(--accent-cafe); }
-.marker-transport { background: var(--accent-transport); }
-.marker-station { background: var(--primary-dark); }
-.marker-home { background: #6366f1; }
-
 /* 내 위치 마커 */
 .my-location-wrap {
   position: relative;

@@ -15,6 +15,17 @@ const MapManager = (() => {
   let searchMarkerOvl = null;  // 재사용 검색 마커 오버레이
   let searchPopupOvl = null;   // 재사용 검색 팝업 오버레이
   let searchActive = false;    // 검색 마커 표시 중 여부
+  const markerImageCache = {}; // 카테고리별 마커 이미지 캐시
+
+  // 카테고리별 마커 색상
+  const MARKER_COLORS = {
+    food: '#f97316',
+    sightseeing: '#0ea5e9',
+    cafe: '#a855f7',
+    station: '#0c4a6e',
+    home: '#6366f1',
+    transport: '#64748b'
+  };
 
   const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&libraries=services&autoload=false';
 
@@ -120,9 +131,20 @@ const MapManager = (() => {
     }
   }
 
-  // 커스텀 마커 HTML 생성 (인덱스 기반 클릭 이벤트)
-  function createMarkerContent(emoji, type, name, markerIndex) {
-    return `<div class="custom-marker marker-${type}" title="${name}" onclick="MapManager.onMarkerClick(${markerIndex})">${emoji}</div>`;
+  // SVG 마커 이미지 생성 (카테고리별 색상 원형)
+  function getMarkerImage(type) {
+    if (markerImageCache[type]) return markerImageCache[type];
+    const color = MARKER_COLORS[type] || '#64748b';
+    const size = 24;
+    const r = size / 2 - 2;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+    const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    markerImageCache[type] = new kakao.maps.MarkerImage(
+      src,
+      new kakao.maps.Size(size, size),
+      { offset: new kakao.maps.Point(size / 2, size / 2) }
+    );
+    return markerImageCache[type];
   }
 
   // 팝업(인포윈도우) HTML 생성
@@ -175,22 +197,26 @@ const MapManager = (() => {
     popupOverlay.setMap(map);
   }
 
-  // 마커 + 오버레이 추가 헬퍼 (투명 마커 없이 경량화)
+  // 마커 추가 (kakao.maps.Marker 기반 - 캔버스 렌더링, DOM 부하 없음)
   function addMarker(lat, lng, emoji, type, name, popupHtml, spotId) {
     const position = new kakao.maps.LatLng(lat, lng);
     const markerIndex = markers.length;
 
-    // 커스텀 오버레이로 마커 생성 (이모지 기반 + 클릭 이벤트 내장)
-    const markerOverlay = new kakao.maps.CustomOverlay({
+    const marker = new kakao.maps.Marker({
       position: position,
-      content: createMarkerContent(emoji, type, name, markerIndex),
-      yAnchor: 0.5,
-      zIndex: 1
+      map: map,
+      image: getMarkerImage(type),
+      title: name,
+      clickable: true
     });
-    markerOverlay.setMap(map);
+
+    // 네이티브 맵 이벤트로 클릭 처리 (DOM 이벤트 아님)
+    kakao.maps.event.addListener(marker, 'click', () => {
+      onMarkerClick(markerIndex);
+    });
 
     const markerData = {
-      markerOverlay,
+      marker,
       popupHtml: popupHtml || null,
       category: type,
       spotId: spotId || null,
@@ -280,13 +306,13 @@ const MapManager = (() => {
     if (popupOverlay) popupOverlay.setMap(null);
   }
 
-  // 필터 적용 (투명 마커 제거로 경량화)
+  // 필터 적용
   function setFilter(category) {
     if (!mapReady) return;
     activeFilter = category;
     markers.forEach((m) => {
       const show = (category === 'all' || m.category === category);
-      m.markerOverlay.setMap(show ? map : null);
+      m.marker.setMap(show ? map : null);
     });
     closeAllPopups();
   }
