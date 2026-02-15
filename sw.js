@@ -12,7 +12,7 @@ const ASSETS_TO_CACHE = [
 
 // 외부 CDN 리소스 (카카오맵 SDK)
 const CDN_ASSETS = [
-  'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&autoload=false'
+  'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e'
 ];
 
 // 설치: 핵심 파일 캐싱
