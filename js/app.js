@@ -195,6 +195,16 @@ const App = (() => {
         resultsEl.classList.remove('hidden');
       }
     });
+
+    // 롱프레스 콜백: 지도 위 꾹 누르면 그 지점 주변 자동 검색
+    MapManager.setLongPressCallback((lat, lng, keyword) => {
+      input.value = keyword;
+      clearBtn.classList.remove('hidden');
+
+      MapManager.searchNearby(lat, lng, keyword, (results) => {
+        renderSearchResults(results);
+      });
+    });
   }
 
   // 검색 결과 렌더링

@@ -16,6 +16,8 @@ const MapManager = (() => {
   let searchPopupOvl = null;   // 재사용 검색 팝업 오버레이
   let searchActive = false;    // 검색 마커 표시 중 여부
   const markerImageCache = {}; // 카테고리별 마커 이미지 캐시
+  let geocoder = null;         // Geocoder 인스턴스 (역지오코딩)
+  let longPressCallback = null;// 롱프레스 콜백
 
   // 카테고리별 마커 색상
   const MARKER_COLORS = {
@@ -86,8 +88,9 @@ const MapManager = (() => {
         level: 9
       });
 
-      // Places API 인스턴스 생성
+      // Places API + Geocoder 인스턴스 생성
       places = new kakao.maps.services.Places();
+      geocoder = new kakao.maps.services.Geocoder();
 
       // 공유 팝업 오버레이 생성 (하나만 재사용)
       popupOverlay = new kakao.maps.CustomOverlay({
@@ -115,6 +118,9 @@ const MapManager = (() => {
       });
 
       mapReady = true;
+
+      // 롱프레스 감지 설정
+      setupLongPress();
 
       // relayout 한번 더 (안전 차원)
       setTimeout(() => map.relayout(), 100);
@@ -544,6 +550,81 @@ const MapManager = (() => {
     searchActive = false;
   }
 
+  // 롱프레스 감지 설정 (500ms 이상 터치 유지)
+  function setupLongPress() {
+    let timer = null;
+    let startX = 0, startY = 0;
+    const el = document.getElementById('map');
+
+    // 브라우저 기본 컨텍스트 메뉴 방지
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    el.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { clearTimeout(timer); timer = null; return; }
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+
+      timer = setTimeout(() => {
+        timer = null;
+        // 픽셀 좌표 → 지도 좌표 변환
+        const rect = el.getBoundingClientRect();
+        const proj = map.getProjection();
+        const point = new kakao.maps.Point(startX - rect.left, startY - rect.top);
+        const latlng = proj.coordsFromContainerPoint(point);
+        handleLongPress(latlng.getLat(), latlng.getLng());
+      }, 500);
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!timer) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => { clearTimeout(timer); timer = null; });
+    el.addEventListener('touchcancel', () => { clearTimeout(timer); timer = null; });
+  }
+
+  // 롱프레스 처리: 역지오코딩 → 콜백으로 전달
+  function handleLongPress(lat, lng) {
+    if (navigator.vibrate) navigator.vibrate(30);
+
+    geocoder.coord2Address(lng, lat, (result, status) => {
+      let keyword = '';
+      if (status === kakao.maps.services.Status.OK && result[0]) {
+        const addr = result[0].address;
+        keyword = addr.region_3depth_name || addr.region_2depth_name || '';
+      }
+      if (longPressCallback && keyword) {
+        longPressCallback(lat, lng, keyword);
+      }
+    });
+  }
+
+  // 특정 위치 기준 주변 검색 (거리순 정렬)
+  function searchNearby(lat, lng, keyword, callback) {
+    if (!places || !mapReady) { callback([]); return; }
+    places.keywordSearch(keyword, (data, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        callback(data.slice(0, 5));
+      } else {
+        callback([]);
+      }
+    }, {
+      location: new kakao.maps.LatLng(lat, lng),
+      radius: 1000,
+      sort: kakao.maps.services.SortBy.DISTANCE
+    });
+  }
+
+  // 롱프레스 콜백 등록 (app.js에서 사용)
+  function setLongPressCallback(fn) {
+    longPressCallback = fn;
+  }
+
   return {
     init,
     relayout,
@@ -557,8 +638,10 @@ const MapManager = (() => {
     closeAllPopups,
     onMarkerClick,
     searchPlaces,
+    searchNearby,
     showSearchMarker,
     clearSearchMarker,
+    setLongPressCallback,
     isTracking: () => isTracking
   };
 })();
