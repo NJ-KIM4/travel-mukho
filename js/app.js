@@ -39,9 +39,7 @@ const App = (() => {
     // 정보 탭 렌더링
     renderInfoTab();
 
-    // 카카오맵 초기화
-    setTimeout(() => MapManager.init(), 100);
-
+    // 카카오맵은 지도 탭이 표시될 때 초기화 (hidden 상태에서는 크기 계산 불가)
     // 서비스 워커 등록
     registerSW();
   }
@@ -83,11 +81,12 @@ const App = (() => {
       c.classList.toggle('active', c.id === `tab-${tabName}`);
     });
 
-    // 지도 탭일 때 리사이즈 트리거
+    // 지도 탭: 첫 진입 시 초기화, 이후엔 relayout
     if (tabName === 'map') {
       setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-      }, 100);
+        MapManager.init();
+        MapManager.relayout();
+      }, 50);
     }
   }
 

@@ -10,8 +10,19 @@ const MapManager = (() => {
   let isFollowing = true;      // 내 위치 따라가기 모드
   let activeFilter = 'all';    // 현재 필터
 
+  let initialized = false; // 초기화 완료 여부
+
   // 지도 초기화
   function init() {
+    if (initialized) {
+      // 이미 초기화됨 → relayout만 호출
+      if (map) {
+        map.relayout();
+        map.setCenter(new kakao.maps.LatLng(37.54, 129.11));
+      }
+      return;
+    }
+
     const container = document.getElementById('map');
 
     // 묵호/동해 중심으로 지도 생성
@@ -38,6 +49,15 @@ const MapManager = (() => {
     kakao.maps.event.addListener(map, 'dragstart', () => {
       isFollowing = false;
     });
+
+    initialized = true;
+  }
+
+  // 탭 전환 시 지도 레이아웃 갱신
+  function relayout() {
+    if (map) {
+      map.relayout();
+    }
   }
 
   // 커스텀 마커 HTML 생성
@@ -351,6 +371,7 @@ const MapManager = (() => {
 
   return {
     init,
+    relayout,
     toggleGPS,
     goToMyLocation,
     flyTo,
