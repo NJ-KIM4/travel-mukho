@@ -11,8 +11,10 @@ const MapManager = (() => {
   let sdkReady = false;        // SDK 로딩 완료 여부
   let mapReady = false;        // 지도 생성 완료 여부
   let places = null;           // Places API 인스턴스
-  let searchMarkerData = null; // 검색 결과 마커 데이터
   let popupOverlay = null;     // 공유 팝업 오버레이 (하나만 재사용)
+  let searchMarkerOvl = null;  // 재사용 검색 마커 오버레이
+  let searchPopupOvl = null;   // 재사용 검색 팝업 오버레이
+  let searchActive = false;    // 검색 마커 표시 중 여부
 
   const SDK_URL = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&libraries=services&autoload=false';
 
@@ -137,10 +139,24 @@ const MapManager = (() => {
     return html;
   }
 
-  // 마커 클릭 핸들러 (공유 팝업 재사용)
+  // 마커 클릭 핸들러 (공유 팝업 재사용 + 검색창 반영)
   function onMarkerClick(index) {
     const m = markers[index];
     if (!m || !m.popupHtml) return;
+
+    // 검색창에 장소 이름 반영
+    const searchInput = document.getElementById('search-input');
+    const clearBtn = document.getElementById('search-clear');
+    if (searchInput && m.name) {
+      searchInput.value = m.name;
+      if (clearBtn) clearBtn.classList.remove('hidden');
+    }
+    // 검색 결과 드롭다운 숨기기
+    const resultsEl = document.getElementById('search-results');
+    if (resultsEl) resultsEl.classList.add('hidden');
+
+    // 검색 마커가 있으면 제거
+    clearSearchMarker();
 
     // 팝업 닫기 버튼 + 컨텐츠
     const closeBtn = `<div class="kakao-popup-close" onclick="MapManager.closeAllPopups()">✕</div>`;
@@ -172,6 +188,7 @@ const MapManager = (() => {
       popupHtml: popupHtml || null,
       category: type,
       spotId: spotId || null,
+      name: name,
       position
     };
     markers.push(markerData);
@@ -398,17 +415,15 @@ const MapManager = (() => {
     setTimeout(() => map.setLevel(9), 300);
   }
 
-  // 특정 스팟의 팝업 열기
+  // 특정 스팟의 팝업 열기 (즉시 이동)
   function openSpotPopup(spotId) {
     if (!mapReady) return;
     const idx = markers.findIndex((mk) => mk.spotId === spotId);
     if (idx !== -1) {
       const m = markers[idx];
-      map.panTo(m.position);
-      setTimeout(() => {
-        map.setLevel(4);
-        onMarkerClick(idx);
-      }, 400);
+      map.setCenter(m.position);
+      map.setLevel(4);
+      onMarkerClick(idx);
     }
   }
 
@@ -431,29 +446,30 @@ const MapManager = (() => {
     });
   }
 
-  // 검색 결과 마커 + 팝업 표시
+  // 검색 결과 마커 + 팝업 표시 (오버레이 재사용 + 즉시 이동)
   function showSearchMarker(place) {
-    clearSearchMarker();
     closeAllPopups();
 
     const lat = parseFloat(place.y);
     const lng = parseFloat(place.x);
     const position = new kakao.maps.LatLng(lat, lng);
 
-    // 검색 마커 (빨간 핀 스타일)
-    const markerOverlay = new kakao.maps.CustomOverlay({
-      position: position,
-      content: `<div class="search-marker">📌</div>`,
-      yAnchor: 1,
-      zIndex: 50
-    });
-    markerOverlay.setMap(map);
+    // 검색 마커 오버레이 (최초 1회만 생성, 이후 재사용)
+    if (!searchMarkerOvl) {
+      searchMarkerOvl = new kakao.maps.CustomOverlay({
+        position: position,
+        content: `<div class="search-marker">📌</div>`,
+        yAnchor: 1,
+        zIndex: 50
+      });
+    } else {
+      searchMarkerOvl.setPosition(position);
+    }
+    searchMarkerOvl.setMap(map);
 
-    // 검색 결과 팝업
+    // 검색 팝업 오버레이 (최초 1회만 생성, 이후 컨텐츠+위치 교체)
     const address = place.road_address_name || place.address_name || '';
-    const searchPopup = new kakao.maps.CustomOverlay({
-      position: position,
-      content: `
+    const popupContent = `
       <div class="kakao-popup-wrap">
         <div class="kakao-popup-close" onclick="MapManager.clearSearchMarker()">✕</div>
         <div class="kakao-popup">
@@ -466,26 +482,34 @@ const MapManager = (() => {
             <a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(place.place_name)}" target="_blank">📍 네이버</a>
           </div>
         </div>
-      </div>`,
-      yAnchor: 1.8,
-      zIndex: 100
-    });
-    searchPopup.setMap(map);
+      </div>`;
 
-    searchMarkerData = { markerOverlay, popupOverlay: searchPopup };
+    if (!searchPopupOvl) {
+      searchPopupOvl = new kakao.maps.CustomOverlay({
+        position: position,
+        content: popupContent,
+        yAnchor: 1.8,
+        zIndex: 100
+      });
+    } else {
+      searchPopupOvl.setMap(null);
+      searchPopupOvl.setPosition(position);
+      searchPopupOvl.setContent(popupContent);
+    }
+    searchPopupOvl.setMap(map);
 
-    // 지도 이동
-    map.panTo(position);
-    setTimeout(() => map.setLevel(3), 300);
+    searchActive = true;
+
+    // 즉시 이동 (panTo 애니메이션 대신 setCenter로 렉 제거)
+    map.setCenter(position);
+    map.setLevel(3);
   }
 
   // 검색 마커 제거
   function clearSearchMarker() {
-    if (searchMarkerData) {
-      searchMarkerData.markerOverlay.setMap(null);
-      searchMarkerData.popupOverlay.setMap(null);
-      searchMarkerData = null;
-    }
+    if (searchMarkerOvl) searchMarkerOvl.setMap(null);
+    if (searchPopupOvl) searchPopupOvl.setMap(null);
+    searchActive = false;
   }
 
   return {
