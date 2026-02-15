@@ -1,5 +1,5 @@
 // 서비스 워커 - 오프라인 지원
-const CACHE_NAME = 'mukho-travel-v3';
+const CACHE_NAME = 'mukho-travel-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,16 +10,11 @@ const ASSETS_TO_CACHE = [
   './manifest.json'
 ];
 
-// 외부 CDN 리소스 (카카오맵 SDK)
-const CDN_ASSETS = [
-  'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e'
-];
-
-// 설치: 핵심 파일 캐싱
+// 설치: 핵심 파일 캐싱 (외부 CDN은 런타임 캐싱)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([...ASSETS_TO_CACHE, ...CDN_ASSETS]);
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();

@@ -14,11 +14,18 @@ const MapManager = (() => {
 
   // 지도 초기화
   function init() {
+    // 카카오맵 SDK 로딩 여부 체크
+    if (typeof kakao === 'undefined' || typeof kakao.maps === 'undefined') {
+      console.warn('카카오맵 SDK가 로드되지 않았습니다.');
+      const container = document.getElementById('map');
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;">지도를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</div>';
+      return;
+    }
+
     if (initialized) {
       // 이미 초기화됨 → relayout만 호출
       if (map) {
         map.relayout();
-        map.setCenter(new kakao.maps.LatLng(37.54, 129.11));
       }
       return;
     }
