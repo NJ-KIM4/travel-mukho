@@ -595,7 +595,6 @@ html, body {
   background: var(--bg-card);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
   min-width: 200px;
   max-width: 280px;
 }

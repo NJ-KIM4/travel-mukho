@@ -92,10 +92,15 @@ const MapManager = (() => {
       // 경로 라인 그리기
       drawRoute();
 
-      // 지도 드래그 시 따라가기 모드 해제 + 팝업 닫기 (드래그 성능 확보)
+      // 지도 드래그/줌 시 따라가기 모드 해제 + 팝업 닫기 (성능 확보)
       kakao.maps.event.addListener(map, 'dragstart', () => {
         isFollowing = false;
         closeAllPopups();
+        clearSearchMarker();
+      });
+      kakao.maps.event.addListener(map, 'zoom_start', () => {
+        closeAllPopups();
+        clearSearchMarker();
       });
 
       mapReady = true;
@@ -246,7 +251,7 @@ const MapManager = (() => {
         strokeWeight: 3,
         strokeColor: '#0ea5e9',
         strokeOpacity: 0.6,
-        strokeStyle: 'shortdash'
+        strokeStyle: 'solid'
       });
       line1.setMap(map);
       routeLines.push(line1);
@@ -263,7 +268,7 @@ const MapManager = (() => {
         strokeWeight: 3,
         strokeColor: '#22c55e',
         strokeOpacity: 0.6,
-        strokeStyle: 'shortdash'
+        strokeStyle: 'solid'
       });
       line2.setMap(map);
       routeLines.push(line2);
