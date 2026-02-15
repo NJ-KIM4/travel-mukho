@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0ea5e9"/>
+  <text x="256" y="280" text-anchor="middle" font-size="200">🗺️</text>
+  <text x="256" y="430" text-anchor="middle" font-size="64" fill="white" font-weight="bold">묵호여행</text>
+</svg>
