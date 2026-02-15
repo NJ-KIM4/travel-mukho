@@ -45,8 +45,8 @@ const TRAVEL_DATA = {
       to: "묵호",
       fromLat: 37.5918,
       fromLng: 127.1628,
-      toLat: 37.5536,
-      toLng: 129.1133,
+      toLat: 37.5468,
+      toLng: 129.1077,
       date: "2026-02-16",
       dateLabel: "2/16(월)",
       time: "09:51",
@@ -59,8 +59,8 @@ const TRAVEL_DATA = {
       type: "KTX-이음",
       from: "묵호",
       to: "양평",
-      fromLat: 37.5536,
-      fromLng: 129.1133,
+      fromLat: 37.5468,
+      fromLng: 129.1077,
       toLat: 37.4912,
       toLng: 127.4876,
       date: "2026-02-17",
@@ -75,7 +75,7 @@ const TRAVEL_DATA = {
   // 역 정보
   stations: {
     deokso: { name: "덕소역", lat: 37.5918, lng: 127.1628 },
-    mukho: { name: "묵호역", lat: 37.5536, lng: 129.1133 },
+    mukho: { name: "묵호역", lat: 37.5468, lng: 129.1077 },
     yangpyeong: { name: "양평역", lat: 37.4912, lng: 127.4876 }
   },
 
@@ -329,8 +329,8 @@ const TRAVEL_DATA = {
           icon: "📍",
           description: "묵호역에서 하차. 짐 보관 또는 숙소 체크인.",
           spotId: null,
-          lat: 37.5536,
-          lng: 129.1133
+          lat: 37.5468,
+          lng: 129.1077
         },
         {
           time: "12:20",
@@ -503,8 +503,8 @@ const TRAVEL_DATA = {
           icon: "🚗",
           description: "묵호역으로 이동 (택시 약 15분)",
           spotId: null,
-          lat: 37.5536,
-          lng: 129.1133
+          lat: 37.5468,
+          lng: 129.1077
         },
         {
           time: "14:10",
