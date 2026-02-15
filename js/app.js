@@ -39,8 +39,10 @@ const App = (() => {
     // 정보 탭 렌더링
     renderInfoTab();
 
-    // 지도 초기화 (탭 전환 시 지연 로딩)
-    setTimeout(() => MapManager.init(), 100);
+    // 카카오맵 로드 후 지도 초기화
+    kakao.maps.load(() => {
+      MapManager.init();
+    });
 
     // 서비스 워커 등록
     registerSW();

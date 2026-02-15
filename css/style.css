@@ -364,7 +364,7 @@ html, body {
   color: white;
 }
 
-/* 지도 마커 커스텀 */
+/* 카카오맵 마커 커스텀 */
 .custom-marker {
   display: flex;
   align-items: center;
@@ -375,11 +375,7 @@ html, body {
   font-size: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   border: 2px solid white;
-  transition: transform 0.2s;
-}
-
-.custom-marker:hover {
-  transform: scale(1.2);
+  cursor: pointer;
 }
 
 .marker-food { background: var(--accent-food); }
@@ -389,7 +385,18 @@ html, body {
 .marker-station { background: var(--primary-dark); }
 .marker-home { background: #6366f1; }
 
+/* 내 위치 마커 */
+.my-location-wrap {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
 .my-location-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -397,6 +404,7 @@ html, body {
   border: 3px solid white;
   box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
   animation: pulse 2s infinite;
+  z-index: 2;
 }
 
 .my-location-ring {
@@ -405,50 +413,76 @@ html, body {
   height: 60px;
   border-radius: 50%;
   background: rgba(14, 165, 233, 0.15);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
 }
 
-/* 마커 팝업 */
-.leaflet-popup-content-wrapper {
-  background: var(--bg-card) !important;
-  color: var(--text) !important;
-  border-radius: var(--radius-sm) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow) !important;
+/* 카카오맵 팝업 */
+.kakao-popup-wrap {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  min-width: 200px;
+  max-width: 280px;
 }
 
-.leaflet-popup-tip {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
+.kakao-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 14px;
+  z-index: 10;
+  padding: 4px;
 }
 
-.leaflet-popup-close-button {
-  color: var(--text-sub) !important;
+.kakao-popup {
+  padding: 14px;
 }
 
-.popup-content h3 {
+.kakao-popup-title {
   font-size: 15px;
-  margin-bottom: 4px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  padding-right: 20px;
 }
 
-.popup-content p {
+.kakao-popup-desc {
   font-size: 12px;
   color: var(--text-sub);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  line-height: 1.5;
 }
 
-.popup-content .popup-btn {
+.kakao-popup-info {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.kakao-popup-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.kakao-popup-btn {
   display: inline-block;
-  margin-top: 6px;
-  padding: 4px 12px;
+  padding: 5px 12px;
   background: var(--primary);
   color: white;
   border-radius: 12px;
   font-size: 12px;
   text-decoration: none;
   font-weight: 600;
+}
+
+.kakao-popup-btn.naver {
+  background: #22c55e;
 }
 
 /* ===== 정보 탭 ===== */

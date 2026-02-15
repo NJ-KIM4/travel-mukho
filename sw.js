@@ -1,5 +1,5 @@
 // 서비스 워커 - 오프라인 지원
-const CACHE_NAME = 'mukho-travel-v1';
+const CACHE_NAME = 'mukho-travel-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,10 +10,9 @@ const ASSETS_TO_CACHE = [
   './manifest.json'
 ];
 
-// 외부 CDN 리소스 (Leaflet 지도 라이브러리)
+// 외부 CDN 리소스 (카카오맵 SDK)
 const CDN_ASSETS = [
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  'https://dapi.kakao.com/v2/maps/sdk.js?appkey=1445ee64e0222628060d216742e4284e&autoload=false'
 ];
 
 // 설치: 핵심 파일 캐싱
@@ -41,7 +40,7 @@ self.addEventListener('activate', (event) => {
 // 요청 가로채기: 캐시 우선, 네트워크 폴백
 self.addEventListener('fetch', (event) => {
   // 지도 타일은 네트워크 우선 (캐시 폴백)
-  if (event.request.url.includes('tile.openstreetmap.org')) {
+  if (event.request.url.includes('dapi.kakao.com') || event.request.url.includes('map.kakao.com')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
