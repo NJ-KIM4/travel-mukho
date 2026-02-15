@@ -111,7 +111,6 @@ const MapManager = (() => {
 
   // 팝업(인포윈도우) HTML 생성
   function createPopupContent(item) {
-    const navUrl = `https://map.kakao.com/link/search/${encodeURIComponent(item.name)}`;
     let html = `<div class="kakao-popup">`;
     html += `<div class="kakao-popup-title">${item.icon || ''} ${item.name}</div>`;
     html += `<div class="kakao-popup-desc">${item.description || ''}</div>`;
@@ -123,7 +122,7 @@ const MapManager = (() => {
     if (item.tips) html += `<div class="kakao-popup-info">💡 ${item.tips}</div>`;
 
     html += `<div class="kakao-popup-actions">`;
-    html += `<a class="kakao-popup-btn" href="${navUrl}" target="_blank">🗺️ 카카오맵</a>`;
+    html += `<a class="kakao-popup-btn" href="#" onclick="event.preventDefault(); App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</a>`;
     html += `<a class="kakao-popup-btn naver" href="https://map.naver.com/v5/search/${encodeURIComponent(item.name)}" target="_blank">📍 네이버</a>`;
     html += `</div>`;
     html += `</div>`;

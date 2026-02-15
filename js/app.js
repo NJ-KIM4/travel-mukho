@@ -157,6 +157,7 @@ const App = (() => {
           <div class="event-desc">${event.description}</div>
           ${event.lat ? `
           <div class="event-meta">
+            <span onclick="event.stopPropagation(); App.openNavigation(${event.lat}, ${event.lng}, '${event.title.replace(/'/g, "\\'")}')">🧭 길찾기</span>
             <span>📍 지도에서 보기</span>
             ${event.spotId ? '<span>ℹ️ 상세정보</span>' : ''}
           </div>` : ''}
@@ -248,7 +249,6 @@ const App = (() => {
 
   // 스팟 카드 HTML 생성
   function createSpotCard(item, type) {
-    const navUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.name)}`;
     const tags = [];
     if (item.hours) tags.push(`🕐 ${item.hours}`);
     if (item.fee) tags.push(`💰 ${item.fee}`);
@@ -267,7 +267,7 @@ const App = (() => {
         <div class="spot-desc">${item.description}</div>
         <div class="spot-tags">
           ${tags.map((t) => `<span class="spot-tag">${t}</span>`).join('')}
-          <a class="navi-btn" href="${navUrl}" target="_blank" onclick="event.stopPropagation()">📍 길찾기</a>
+          <button class="navi-btn" onclick="event.stopPropagation(); App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">🧭 길찾기</button>
         </div>
       </div>`;
   }
@@ -280,8 +280,6 @@ const App = (() => {
 
     const modal = document.getElementById('modal-overlay');
     const sheet = document.getElementById('modal-sheet');
-
-    const navUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.name)}`;
 
     let html = `
       <div class="modal-handle"></div>
@@ -331,12 +329,12 @@ const App = (() => {
 
     html += `
       <div class="modal-actions">
-        <button class="modal-action-btn primary" onclick="App.navigateToSpot('${item.id}')">
+        <button class="modal-action-btn primary" onclick="App.openNavigation(${item.lat}, ${item.lng}, '${item.name.replace(/'/g, "\\'")}')">
+          🧭 길찾기
+        </button>
+        <button class="modal-action-btn secondary" onclick="App.navigateToSpot('${item.id}')">
           📍 지도에서 보기
         </button>
-        <a class="modal-action-btn secondary" href="${navUrl}" target="_blank" style="text-decoration:none;">
-          🗺️ 네이버 지도
-        </a>
       </div>`;
 
     sheet.innerHTML = html;
@@ -370,6 +368,18 @@ const App = (() => {
     currentLocation = { lat, lng };
   }
 
+  // 외부 지도 앱으로 길찾기 (현재 위치 → 목적지)
+  function openNavigation(destLat, destLng, destName) {
+    if (!currentLocation) {
+      // GPS 꺼져있으면 목적지만 열기
+      window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+      return;
+    }
+    const { lat: sLat, lng: sLng } = currentLocation;
+    // 카카오맵 길찾기 (모바일에서 앱 설치 시 앱으로 열림)
+    window.open(`https://map.kakao.com/link/from/현재위치,${sLat},${sLng}/to/${encodeURIComponent(destName)},${destLat},${destLng}`, '_blank');
+  }
+
   // 전체 경로 보기
   function showFullRoute() {
     switchTab('map');
@@ -386,7 +396,8 @@ const App = (() => {
     toggleGPS,
     goToMyLocation,
     updateLocation,
-    showFullRoute
+    showFullRoute,
+    openNavigation
   };
 })();
 

@@ -650,6 +650,15 @@ html, body {
   font-weight: 600;
   text-decoration: none;
   border: 1px solid rgba(14, 165, 233, 0.3);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 이벤트 카드 길찾기 링크 */
+.event-meta span[onclick] {
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
 }
 
 /* ===== 하단 탭 바 ===== */
