@@ -3,61 +3,80 @@ const MapManager = (() => {
   let map = null;              // 카카오 지도 인스턴스
   let markers = [];            // 모든 마커 { marker, overlay, category, spotId }
   let routeLines = [];         // 경로 라인
-  let myLocationMarker = null; // 내 위치 마커
   let myLocationOverlay = null;// 내 위치 오버레이
   let watchId = null;          // GPS 감시 ID
   let isTracking = false;      // GPS 추적 중 여부
   let isFollowing = true;      // 내 위치 따라가기 모드
   let activeFilter = 'all';    // 현재 필터
+  let sdkReady = false;        // SDK 로딩 완료 여부
+  let mapReady = false;        // 지도 생성 완료 여부
 
-  let initialized = false; // 초기화 완료 여부
-
-  // 지도 초기화
+  // 지도 초기화 (지도 탭 클릭 시 호출)
   function init() {
-    // 카카오맵 SDK 로딩 여부 체크
-    if (typeof kakao === 'undefined' || typeof kakao.maps === 'undefined') {
-      console.warn('카카오맵 SDK가 로드되지 않았습니다.');
-      const container = document.getElementById('map');
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;">지도를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</div>';
-      return;
-    }
-
-    if (initialized) {
-      // 이미 초기화됨 → relayout만 호출
-      if (map) {
-        map.relayout();
-      }
-      return;
-    }
-
     const container = document.getElementById('map');
 
-    // 묵호/동해 중심으로 지도 생성
-    map = new kakao.maps.Map(container, {
-      center: new kakao.maps.LatLng(37.54, 129.11),
-      level: 9
-    });
+    // 이미 지도가 생성됨 → relayout만
+    if (mapReady && map) {
+      map.relayout();
+      return;
+    }
 
-    // 줌 컨트롤 추가
-    const zoomControl = new kakao.maps.ZoomControl();
-    map.addControl(zoomControl, kakao.maps.ControlPosition.TOPRIGHT);
+    // kakao 객체 존재 여부 확인 (autoload=false이면 존재해야 함)
+    if (typeof kakao === 'undefined') {
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">카카오맵 SDK를 불러올 수 없습니다.<br>네트워크 연결을 확인해주세요.</div>';
+      return;
+    }
 
-    // 지도 타입 컨트롤 (일반/위성)
-    const mapTypeControl = new kakao.maps.MapTypeControl();
-    map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+    // SDK가 아직 로드되지 않았으면 kakao.maps.load()로 로드
+    if (!sdkReady) {
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">지도를 불러오는 중...</div>';
 
-    // 마커 추가
-    addAllMarkers();
+      kakao.maps.load(() => {
+        sdkReady = true;
+        // 로딩 메시지 제거
+        container.innerHTML = '';
+        createMap(container);
+      });
+      return;
+    }
 
-    // 경로 라인 그리기
-    drawRoute();
+    // SDK 이미 로드됨 → 바로 지도 생성
+    createMap(container);
+  }
 
-    // 지도 드래그 시 따라가기 모드 해제
-    kakao.maps.event.addListener(map, 'dragstart', () => {
-      isFollowing = false;
-    });
+  // 실제 지도 생성
+  function createMap(container) {
+    try {
+      map = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(37.54, 129.11),
+        level: 9
+      });
 
-    initialized = true;
+      // 줌 컨트롤
+      map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.TOPRIGHT);
+
+      // 지도 타입 컨트롤 (일반/위성)
+      map.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT);
+
+      // 마커 추가
+      addAllMarkers();
+
+      // 경로 라인 그리기
+      drawRoute();
+
+      // 지도 드래그 시 따라가기 모드 해제
+      kakao.maps.event.addListener(map, 'dragstart', () => {
+        isFollowing = false;
+      });
+
+      mapReady = true;
+
+      // relayout 한번 더 (안전 차원)
+      setTimeout(() => map.relayout(), 100);
+    } catch (e) {
+      console.error('지도 생성 오류:', e);
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;text-align:center;padding:20px;font-size:14px;">지도 생성 중 오류가 발생했습니다.<br>' + e.message + '</div>';
+    }
   }
 
   // 탭 전환 시 지도 레이아웃 갱신
@@ -226,6 +245,7 @@ const MapManager = (() => {
 
   // 필터 적용
   function setFilter(category) {
+    if (!mapReady) return;
     activeFilter = category;
     markers.forEach((m) => {
       const show = (category === 'all' || m.category === category);
@@ -291,6 +311,7 @@ const MapManager = (() => {
 
   // 내 위치 업데이트
   function updateMyLocation(coords) {
+    if (!mapReady || !map) return;
     const { latitude: lat, longitude: lng } = coords;
     const position = new kakao.maps.LatLng(lat, lng);
 
@@ -351,7 +372,7 @@ const MapManager = (() => {
 
   // 모든 마커가 보이게 줌
   function fitAll() {
-    if (markers.length === 0) return;
+    if (!mapReady || markers.length === 0) return;
     const bounds = new kakao.maps.LatLngBounds();
     markers.forEach((m) => bounds.extend(m.position));
     map.setBounds(bounds, 50);
@@ -359,12 +380,14 @@ const MapManager = (() => {
 
   // 묵호/동해 중심으로 이동
   function goToMukho() {
+    if (!map) return;
     map.panTo(new kakao.maps.LatLng(37.54, 129.11));
     setTimeout(() => map.setLevel(9), 300);
   }
 
   // 특정 스팟의 팝업 열기
   function openSpotPopup(spotId) {
+    if (!mapReady) return;
     const m = markers.find((mk) => mk.spotId === spotId);
     if (m) {
       closeAllPopups();
